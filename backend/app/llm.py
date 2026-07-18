@@ -1,3 +1,4 @@
+from __future__ import annotations
 from langchain_openai import ChatOpenAI
 from app.config import config
 

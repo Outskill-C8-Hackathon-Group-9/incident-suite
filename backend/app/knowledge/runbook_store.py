@@ -1,3 +1,4 @@
+from __future__ import annotations
 import logging
 from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
