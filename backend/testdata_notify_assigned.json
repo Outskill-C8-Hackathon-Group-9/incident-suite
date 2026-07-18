@@ -1,0 +1,21 @@
+{
+  "ok": true,
+  "project_key": "HAC",
+  "ticket": {
+    "key": "HAC-102",
+    "url": "https://mukundayelavatti.atlassian.net/browse/HAC-102",
+    "summary": "Assigned incident for notification test",
+    "severity": "critical",
+    "status": "Assigned",
+    "assignee": "Mukunda"
+  },
+  "duplicate_found": false,
+  "assigned_engineer": {
+    "name": "Mukunda",
+    "email": "mukunda@example.com",
+    "slack_user_id": "U0BJ9M4FP33",
+    "jira_account_id": "60dd2f737536500070b3c9f4"
+  },
+  "used_real_jira_config": true,
+  "created_in_jira": false
+}

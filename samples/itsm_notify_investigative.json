@@ -1,0 +1,22 @@
+{
+  "summary": "Inventory-service is timing out to its database, and the root cause is still unclear after the deploy rollback.",
+  "severity": "critical",
+  "host": "node-b-09",
+  "service": "inventory-service",
+  "expected_verification_success": false,
+  "cookbook": {
+    "title": "Collect evidence before deeper database investigation",
+    "items": [
+      {
+        "step": 1,
+        "action": "Capture fresh database timeout logs and connection metrics.",
+        "done_when": "The team has one clean evidence bundle with timestamps and affected hosts."
+      },
+      {
+        "step": 2,
+        "action": "Compare the failing hosts against healthy hosts for connection and latency differences.",
+        "done_when": "An engineer can explain what is different about the unhealthy path."
+      }
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "summary": "Checkout latency spiked after the last deploy and the payment-service error rate is climbing.",
+  "severity": "high",
+  "host": "node-a-17",
+  "service": "payment-service",
+  "expected_verification_success": true,
+  "cookbook": {
+    "title": "Rollback the risky deploy and verify checkout health",
+    "items": [
+      {
+        "step": 1,
+        "action": "Roll back payment-service to the previous stable deployment.",
+        "done_when": "The new pods are serving traffic and the error rate starts dropping."
+      },
+      {
+        "step": 2,
+        "action": "Watch checkout latency and 5xx metrics for five minutes.",
+        "done_when": "Latency returns near baseline and the 5xx rate stays low."
+      }
+    ]
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "ok": true,
+  "project_key": "HAC",
+  "ticket": {
+    "key": "HAC-101",
+    "url": "https://mukundayelavatti.atlassian.net/browse/HAC-101",
+    "summary": "Closed incident for notification test",
+    "severity": "high",
+    "status": "Closed",
+    "assignee": "anirban"
+  },
+  "duplicate_found": false,
+  "assigned_engineer": {
+    "name": "anirban",
+    "email": "anirban@example.com",
+    "slack_user_id": "U0BJ7AY2DFU",
+    "jira_account_id": "712020:e8355925-482e-465e-b9dd-3bf61938430d"
+  },
+  "used_real_jira_config": true,
+  "created_in_jira": true
+}
