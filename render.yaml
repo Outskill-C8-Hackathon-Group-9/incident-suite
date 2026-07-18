@@ -1,0 +1,61 @@
+# render.yaml — Single-service deployment on Render (free tier).
+# Both the React frontend (served as static files) and the FastAPI backend
+# run from ONE web service. ChromaDB lives on the persistent disk.
+#
+# How it works:
+#   build: npm ci + npm run build (copies dist → backend/static/) then pip install
+#   start: uvicorn serves the FastAPI app which also mounts static/
+#
+# Deploy steps:
+#   1. Push this repo to GitHub
+#   2. Go to https://dashboard.render.com → New → Blueprint
+#   3. Connect your repo — Render picks up this file automatically
+#   4. Set the secret environment variables in the Render dashboard:
+#        OPENROUTER_API_KEY, CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY
+#   5. Click Deploy!
+
+services:
+  - type: web
+    name: incident-suite
+    runtime: python
+    region: oregon           # or frankfurt if you prefer EU
+    plan: free               # free tier (spins down after 15 min idle)
+    rootDir: backend         # uvicorn runs from here
+    buildCommand: |
+      cd ../frontend && npm ci && npm run build
+      cp -r ../frontend/dist ./static
+      pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+
+    # Persistent disk — keeps ChromaDB across restarts (free up to 1 GB)
+    disk:
+      name: chroma-data
+      mountPath: /data
+      sizeGB: 1
+
+    envVars:
+      # ── Non-secret config ──────────────────────────────────────────────
+      - key: CHROMA_DIR
+        value: /data/chroma_db          # persisted on the disk above
+      - key: EMBEDDING_MODEL
+        value: sentence-transformers/all-MiniLM-L6-v2
+      - key: LLM_MODEL
+        value: openai/gpt-4o-mini
+      - key: LLM_TEMPERATURE
+        value: "0.1"
+      - key: OPENROUTER_BASE_URL
+        value: https://openrouter.ai/api/v1
+      - key: SLACK_CHANNEL
+        value: "#incidents"
+      - key: JIRA_PROJECT_KEY
+        value: INC
+      - key: STATIC_DIR
+        value: ./static               # where FastAPI serves the built React app
+
+      # ── Secrets — set these in the Render Dashboard (not here!) ───────
+      - key: OPENROUTER_API_KEY
+        sync: false                   # marks it as a manual secret
+      - key: CLERK_PUBLISHABLE_KEY
+        sync: false
+      - key: CLERK_SECRET_KEY
+        sync: false

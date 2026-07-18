@@ -1,13 +1,22 @@
 import json
+import os
 import uuid
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from sse_starlette.sse import EventSourceResponse
 
 from app.graph import graph
 from app.knowledge.runbook_store import seed_if_empty
+
+# Directory where the built React app lives (set via STATIC_DIR env var).
+# In production (Render) this is ./static (populated by build.sh).
+# In local dev it is unset / missing, so static serving is skipped.
+STATIC_DIR = Path(os.getenv("STATIC_DIR", "./static"))
 
 
 @asynccontextmanager
@@ -19,9 +28,16 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Incident Analysis Suite", lifespan=lifespan)
+
+# CORS_ORIGINS env var: comma-separated list of allowed origins.
+# In production set it to your deployed frontend URL (or "*" for open access).
+# Defaults to localhost for local dev.
+_cors_origins_raw = os.getenv("CORS_ORIGINS", "http://localhost:5173")
+_cors_origins = [o.strip() for o in _cors_origins_raw.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=_cors_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -72,3 +88,17 @@ async def analyze(file: UploadFile = File(...)):
         yield {"event": "done", "data": json.dumps(_jsonable(final))}
 
     return EventSourceResponse(event_stream())
+
+
+# ── Static file serving (production only) ────────────────────────────────────
+# Mount the built React app so that:
+#   /assets/*  → hashed JS/CSS bundles
+#   /           → index.html (and any deep route via the catch-all below)
+# This is a no-op in local dev if STATIC_DIR doesn't exist yet.
+if STATIC_DIR.is_dir():
+    app.mount("/assets", StaticFiles(directory=STATIC_DIR / "assets"), name="assets")
+
+    @app.get("/{full_path:path}", response_class=HTMLResponse, include_in_schema=False)
+    async def serve_spa(full_path: str) -> HTMLResponse:  # noqa: ARG001
+        """Catch-all: return index.html so React Router handles client-side routes."""
+        return HTMLResponse((STATIC_DIR / "index.html").read_text())
