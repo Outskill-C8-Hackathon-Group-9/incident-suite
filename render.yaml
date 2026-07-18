@@ -58,3 +58,5 @@ services:
         sync: false
       - key: CLERK_SECRET_KEY
         sync: false
+      - key: HF_TOKEN
+        sync: false                   # free at huggingface.co/settings/tokens
