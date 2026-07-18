@@ -37,6 +37,12 @@ class DetectedIssue(BaseModel):
     affected_service: str
     summary: str = Field(description="1-2 sentence plain-English explanation")
     evidence: list[str] = Field(description="log lines that justify this issue")
+    confidence: float = Field(
+        default=0.0,
+        ge=0.0,
+        le=1.0,
+        description="Confidence score between 0.0 and 1.0 for the detected issue",
+    )
 
 
 class ClassifierOutput(BaseModel):
@@ -55,10 +61,47 @@ class Remediation(BaseModel):
         default_factory=list,
         description="titles of runbooks retrieved from the knowledge base that informed this fix",
     )
+    confidence: float = Field(
+        default=0.0,
+        ge=0.0,
+        le=1.0,
+        description="Confidence score between 0.0 and 1.0 for the proposed remediation",
+    )
 
 
 class RemediationOutput(BaseModel):
     remediations: list[Remediation]
+
+
+# ---- LLM evaluation schemas ----
+class IssueEvaluation(BaseModel):
+    id: str
+    confidence: float = Field(
+        default=0.0,
+        ge=0.0,
+        le=1.0,
+        description="LLM-assigned confidence for the detected issue",
+    )
+    reasoning: str
+
+
+class IssueEvaluations(BaseModel):
+    issue_evals: list[IssueEvaluation]
+
+
+class RemediationEvaluation(BaseModel):
+    issue_id: str
+    confidence: float = Field(
+        default=0.0,
+        ge=0.0,
+        le=1.0,
+        description="LLM-assigned confidence for the proposed remediation",
+    )
+    reasoning: str
+
+
+class RemediationEvaluations(BaseModel):
+    remediation_evals: list[RemediationEvaluation]
 
 
 # ---- cookbook output (LLM structured output) ----
