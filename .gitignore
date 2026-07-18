@@ -42,7 +42,7 @@ htmlcov/
 *.egg
 
 # --- Node / frontend ---
-node_modules/
+frontend/node_modules/
 frontend/dist/
 *.tsbuildinfo
 .npm
