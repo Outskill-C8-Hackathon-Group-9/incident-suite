@@ -27,16 +27,15 @@ services:
       pip install -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
 
-    # Persistent disk — keeps ChromaDB across restarts (free up to 1 GB)
-    disk:
-      name: chroma-data
-      mountPath: /data
-      sizeGB: 1
+    # NOTE: Free tier has no persistent disk.
+    # ChromaDB lives in the ephemeral filesystem and is re-seeded on every
+    # cold start via seed_if_empty() — no data loss since runbooks are seeded
+    # from source code (backend/app/knowledge/runbook_seed.py).
 
     envVars:
       # ── Non-secret config ──────────────────────────────────────────────
       - key: CHROMA_DIR
-        value: /data/chroma_db          # persisted on the disk above
+        value: ./chroma_db              # ephemeral on free tier; re-seeded at startup
       - key: EMBEDDING_MODEL
         value: sentence-transformers/all-MiniLM-L6-v2
       - key: LLM_MODEL
