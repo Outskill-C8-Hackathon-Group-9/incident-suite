@@ -30,7 +30,6 @@ export default function AppRouter() {
       window.location.replace(isSignedIn ? "/analyze" : "/login");
     }
   }, [isLoaded, isLoginRoute, isSignedIn]);
-
   if (!isLoaded) return <RouteLoading />;
   if (isLoginRoute) return isSignedIn ? <RouteLoading /> : <LoginPage isCallback={pathname === "/login/sso-callback"} />;
   return isSignedIn ? <App /> : <RouteLoading />;

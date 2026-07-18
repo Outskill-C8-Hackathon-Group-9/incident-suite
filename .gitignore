@@ -44,6 +44,7 @@ htmlcov/
 # --- Node / frontend ---
 node_modules/
 frontend/dist/
+backend/static/          # build artifact — populated by build.sh during deploy
 *.tsbuildinfo
 .npm
 .eslintcache
