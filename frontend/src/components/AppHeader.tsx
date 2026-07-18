@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { UserButton, useAuth } from "@clerk/react";
 
 interface AppHeaderProps {
   running: boolean;
@@ -13,6 +14,7 @@ function formatElapsed(seconds: number): string {
 
 export default function AppHeader({ running, criticalCount }: AppHeaderProps) {
   const [elapsed, setElapsed] = useState<number>(0);
+  const { signOut } = useAuth();
 
   useEffect(() => {
     if (!running) {
@@ -25,43 +27,23 @@ export default function AppHeader({ running, criticalCount }: AppHeaderProps) {
 
   return (
     <header className="app-header">
-      {/* Logo */}
-      <a href="/" className="header-logo">
+      <a href="/analyze" className="header-logo">
         <div className="header-logo-icon">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5">
-            <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" />
-          </svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10" /></svg>
         </div>
         <span className="header-logo-name">IncidentSuite</span>
       </a>
-
       <span className="header-version">v1.0</span>
-
       <div className="header-spacer" />
-
-      {/* Active incidents stat */}
-      <div className="header-stat">
-        <span className="header-stat-label">Active Incidents</span>
-        <span className={`header-stat-value ${criticalCount > 0 ? "critical" : ""}`}>
-          {criticalCount > 0 ? `${criticalCount} Critical` : "None"}
-        </span>
-      </div>
-
+      <div className="header-stat"><span className="header-stat-label">Active Incidents</span><span className={`header-stat-value ${criticalCount > 0 ? "critical" : ""}`}>{criticalCount > 0 ? `${criticalCount} Critical` : "None"}</span></div>
       <div className="header-sep" />
-
-      {/* MTTR */}
-      <div className="header-stat">
-        <span className="header-stat-label">MTTR</span>
-        <span className="header-stat-value accent">
-          {running || elapsed > 0 ? formatElapsed(elapsed) : "â€”"}
-        </span>
-      </div>
-
+      <div className="header-stat"><span className="header-stat-label">MTTR</span><span className="header-stat-value accent">{running || elapsed > 0 ? formatElapsed(elapsed) : "—"}</span></div>
       <div className="header-sep" />
-
-      {/* User */}
-      <span className="header-user-label">SRE Lead</span>
-      <div className="header-avatar" title="SRE Lead">S</div>
+      <div className="header-auth">
+        <span className="header-user-label">Signed in</span>
+        <UserButton />
+        <button className="auth-btn auth-btn-secondary" type="button" onClick={() => { void signOut({ redirectUrl: "/login" }); }}>Sign out</button>
+      </div>
     </header>
   );
 }

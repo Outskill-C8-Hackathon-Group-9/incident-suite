@@ -1,6 +1,6 @@
 import type { AnalyzeCallbacks, AnalysisResult, NodeEvent } from "./types";
 
-const BASE = "http://localhost:8000";
+const BASE = import.meta.env.VITE_API_BASE_URL ?? "";
 
 interface SseFrame {
   evt: string | undefined;
@@ -32,7 +32,7 @@ export async function analyze(
     const form = new FormData();
     form.append("file", file);
 
-    const res = await fetch(`${BASE}/analyze`, { method: "POST", body: form });
+    const res = await fetch(`${BASE}/api/analyze`, { method: "POST", body: form });
     if (!res.ok || !res.body) throw new Error(`Request failed: ${res.status}`);
 
     const reader = res.body.getReader();
@@ -74,3 +74,4 @@ export async function analyze(
     if (!sawDone) onError?.(err instanceof Error ? err : new Error(String(err)));
   }
 }
+

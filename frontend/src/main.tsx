@@ -1,13 +1,22 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
+import { ClerkProvider } from "@clerk/react";
 import "./index.css";
-import App from "./App.tsx";
+import AppRouter from "./AppRouter.tsx";
+
+const publishableKey = import.meta.env.CLERK_PUBLISHABLE_KEY;
+
+if (!publishableKey) {
+  throw new Error("[Clerk] CLERK_PUBLISHABLE_KEY is required.");
+}
 
 const rootEl = document.getElementById("root");
 if (!rootEl) throw new Error("Root element #root not found in DOM");
 
 createRoot(rootEl).render(
   <React.StrictMode>
-    <App />
+    <ClerkProvider publishableKey={publishableKey}>
+      <AppRouter />
+    </ClerkProvider>
   </React.StrictMode>,
 );
