@@ -1,0 +1,10 @@
+2025-05-01T10:02:11Z INFO  [api-gateway] request GET /checkout 200 45ms
+2025-05-01T10:05:31Z INFO  [user-service] deployed version v2.5.0
+2025-05-01T10:05:48Z ERROR [user-service] NullPointerException at UserProfileHandler.resolve(line 88)
+2025-05-01T10:05:49Z ERROR [user-service] NullPointerException at UserProfileHandler.resolve(line 88)
+2025-05-01T10:05:52Z ERROR [user-service] NullPointerException at UserProfileHandler.resolve(line 88)
+2025-05-01T10:06:03Z WARN  [api-gateway] upstream user-service latency 4200ms (p99)
+2025-05-01T10:06:15Z ERROR [user-service] NullPointerException at UserProfileHandler.resolve(line 88)
+2025-05-01T10:06:22Z ERROR [user-service] NullPointerException at UserProfileHandler.resolve(line 88)
+2025-05-01T10:07:01Z ERROR [api-gateway] upstream timeout calling user-service after 5000ms
+2025-05-01T10:07:11Z ERROR [api-gateway] upstream timeout calling user-service after 5000ms

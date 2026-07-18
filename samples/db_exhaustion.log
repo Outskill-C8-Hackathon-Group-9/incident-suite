@@ -1,0 +1,11 @@
+2025-05-03T14:22:10Z INFO  [database-proxy] pool size 20/20 active
+2025-05-03T14:22:15Z WARN  [database-proxy] connection wait 1200ms
+2025-05-03T14:22:20Z WARN  [database-proxy] connection wait 2400ms
+2025-05-03T14:22:31Z ERROR [user-service] timeout acquiring connection from pool
+2025-05-03T14:22:32Z ERROR [user-service] timeout acquiring connection from pool
+2025-05-03T14:22:33Z ERROR [order-service] timeout acquiring connection from pool
+2025-05-03T14:22:34Z ERROR [inventory-service] timeout acquiring connection from pool
+2025-05-03T14:22:35Z ERROR [user-service] timeout acquiring connection from pool
+2025-05-03T14:22:40Z ERROR [database-proxy] pool exhausted: 0 available, 20 active, 50 waiting
+2025-05-03T14:22:41Z ERROR [database-proxy] pool exhausted: 0 available, 20 active, 60 waiting
+2025-05-03T14:22:50Z ERROR [api-gateway] upstream user-service 500 after 10000ms

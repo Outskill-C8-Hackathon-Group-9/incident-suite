@@ -1,0 +1,13 @@
+2025-05-02T08:12:00Z INFO  [order-service] started with heap=2g
+2025-05-02T08:15:23Z INFO  [order-service] GC pause 45ms young
+2025-05-02T08:20:11Z WARN  [order-service] heap usage 68% (1.36g/2g)
+2025-05-02T08:25:44Z WARN  [order-service] heap usage 74% (1.48g/2g)
+2025-05-02T08:30:01Z WARN  [order-service] heap usage 82% (1.64g/2g)
+2025-05-02T08:34:12Z WARN  [order-service] GC pause 850ms old gen
+2025-05-02T08:35:30Z ERROR [order-service] java.lang.OutOfMemoryError: Java heap space
+2025-05-02T08:35:31Z ERROR [order-service] java.lang.OutOfMemoryError: Java heap space
+2025-05-02T08:35:33Z INFO  [k8s] pod order-service-x7k9z OOMKilled, restarting
+2025-05-02T08:35:45Z INFO  [order-service] started with heap=2g
+2025-05-02T08:36:10Z WARN  [order-service] heap usage 71% (1.42g/2g)
+2025-05-02T08:36:20Z ERROR [payment-service] connection refused calling order-service
+2025-05-02T08:36:25Z ERROR [payment-service] connection refused calling order-service

@@ -1,0 +1,23 @@
+# Multi-Agent DevOps Incident Analysis Suite — backend dependencies
+# Install (inside a venv):  pip install -r requirements.txt
+
+# ---- LangGraph orchestration + LLM ----
+langgraph>=0.2.0
+langchain>=0.3.0
+langchain-core>=0.3.0
+langchain-openai>=0.2.0            # OpenRouter (OpenAI-compatible endpoint)
+
+# ---- RAG: vector DB + local embeddings ----
+langchain-chroma>=0.1.4           # Chroma vector store (pulls in chromadb)
+langchain-huggingface>=0.1.0      # HuggingFaceEmbeddings wrapper
+sentence-transformers>=3.0.0      # local embedding model (all-MiniLM-L6-v2)
+
+# ---- web layer ----
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+sse-starlette>=2.1.0              # Server-Sent Events for FastAPI
+python-multipart>=0.0.9          # file uploads
+
+# ---- config / models ----
+python-dotenv>=1.0.0
+pydantic>=2.0.0
