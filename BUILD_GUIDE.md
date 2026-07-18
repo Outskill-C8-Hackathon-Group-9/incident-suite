@@ -130,46 +130,70 @@ incident-suite/
 ## 3. Architecture & data flow
 
 ```
-                 ┌───────────────────────────┐
-                 │   React upload UI (Vite)   │
+                 ┌────────────────────────────┐
+                 │    React Upload UI (Vite)  │
                  │  drop .log / .txt / .json  │
-                 └─────────────┬──────────────┘
-                               │ POST /analyze (multipart)
-                               ▼
-                 ┌───────────────────────────┐
-                 │   FastAPI  (SSE stream)    │  seeds runbook vector DB on startup
-                 └─────────────┬──────────────┘
-                               │ graph.astream(initial_state)
-     ┌────────────────────  LangGraph  ─────────────────────────────────┐
-     │  START                                                            │
-     │    │                                                              │
-     │    ▼                                                              │
-     │  ┌──────────────┐  parse → cluster → LLM classify                │
-     │  │ classifier   │  → DetectedIssue[]                             │
-     │  └──────┬───────┘                                                 │
-     │         ▼                                                         │
-     │  ┌──────────────┐  ┌──────────────────────────────┐              │
-     │  │ remediation  │◄─┤ Chroma vector DB (RAG)        │              │
-     │  │              │  │ runbook / past-incident corpus │              │
-     │  └──────┬───────┘  └──────────────────────────────┘              │
-     │         ▼  retrieves top-k runbooks per issue, grounds the fix    │
-     │  ┌──────────────┐  LLM → ordered checklist                       │
-     │  │  cookbook    │                                                 │
-     │  └──────┬───────┘                                                 │
-     │         │  route_by_severity(state)                               │
-     │   ╔═════╧══════╗  critical/high ──► ┌───────────┐                 │
-     │   ║ critical?   ║                    │  jira     │ create tickets  │
-     │   ╚═════╤══════╝                    └─────┬─────┘                 │
-     │         │ no                               │                       │
-     │         └───────────┐        ┌─────────────┘                      │
-     │                     ▼        ▼                                     │
-     │                 ┌──────────────┐  format + JIRA links → Slack     │
-     │                 │  notifier    │                                   │
-     │                 └──────┬───────┘                                   │
-     │                        ▼                                           │
-     │                       END                                         │
-     │   Every node appends to state.trace (streamed live to the UI)     │
-     └───────────────────────────────────────────────────────────────────┘
+                 └──────────────┬─────────────┘
+                                │ POST /analyze (multipart)
+                                ▼
+                 ┌────────────────────────────┐
+                 │    FastAPI (SSE Stream)    │
+                 │ Seeds Chroma DB on startup │
+                 └──────────────┬─────────────┘
+                                │ graph.astream(initial_state)
+     ┌────────────────────── LangGraph ───────────────────────────────────────┐
+     │                                                                         │
+     │ START                                                                   │
+     │   │                                                                     │
+     │   ▼                                                                     │
+     │ ┌──────────────┐                                                        │
+     │ │ Classifier   │ Parse → Cluster → LLM → DetectedIssue[]                │
+     │ └──────┬───────┘                                                        │
+     │        ▼                                                                │
+     │ ┌──────────────┐        ┌──────────────────────────────┐                │
+     │ │ Remediation  │◄──────►│ Chroma Vector DB (RAG)        │                │
+     │ │              │        │ Runbooks / Past Incidents     │                │
+     │ └──────┬───────┘        └──────────────────────────────┘                │
+     │        ▼                                                                │
+     │ ┌──────────────┐                                                        │
+     │ │  Cookbook    │ LLM → Ordered Remediation Checklist                    │
+     │ └──────┬───────┘                                                        │
+     │        ▼                                                                │
+     │ ┌──────────────┐                                                        │
+     │ │ Decision     │ Determines:                                            │
+     │ │ Engine       │ • Remediative / Investigative                          │
+     │ │              │ • Severity • Confidence • Policy                       │
+     │ └──────┬───────┘                                                        │
+     │        │                                                                │
+     │   ┌────┴──────────────────────────────┐                                 │
+     │   │                                   │                                 │
+     │   ▼                                   ▼                                 │
+     │ Remediative                     Investigative                           │
+     │   │                                   │                                 │
+     │   ▼                                   ▼                                 │
+     │ ┌──────────────┐               ┌──────────────┐                         │
+     │ │ ITSM Service │               │ ITSM Service │                         │
+     │ │ Create Ticket│               │ Create Ticket│                         │
+     │ └──────┬───────┘               └──────┬───────┘                         │
+     │        ▼                              ▼                                 │
+     │ Execute Cookbook               Round Robin Assign                       │
+     │        │                              │                                 │
+     │        ▼                              ▼                                 │
+     │ Verify Outcome                 Return Assignee                          │
+     │        │                              │                                 │
+     │        ▼                              ▼                                 │
+     │ Close Ticket                  Slack Notification                        │
+     │        │                              │                                 │
+     │        └──────────────┬───────────────┘                                 │
+     │                       ▼                                                 │
+     │              Slack Notification Node                                    │
+     │              • Team Channel                                             │
+     │              • Assigned User DM (Investigative only)                    │
+     │                                                                         │
+     │ END                                                                     │
+     │                                                                         │
+     │ Every node appends to state.trace (streamed live via SSE to the UI)     │
+     └─────────────────────────────────────────────────────────────────────────┘
 ```
 
 **One-sentence flow:** raw text → structured entries → detected issues → **(RAG) runbook-grounded
