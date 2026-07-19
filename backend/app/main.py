@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import uuid
 from contextlib import asynccontextmanager
@@ -12,6 +13,13 @@ from sse_starlette.sse import EventSourceResponse
 
 from app.graph import graph
 from app.knowledge.runbook_store import seed_if_empty
+
+# Structured agent I/O logs (request/response JSON) go to stdout.
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
+)
+logging.getLogger("incident_suite.agents").setLevel(logging.INFO)
 
 # Directory where the built React app lives (set via STATIC_DIR env var).
 # In production (Render) this is ./static (populated by build.sh).

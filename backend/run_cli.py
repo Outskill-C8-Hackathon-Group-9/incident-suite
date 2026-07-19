@@ -3,10 +3,17 @@
 Usage:  python run_cli.py ../samples/deployment_regression.log
 """
 import asyncio
+import logging
 import sys
 
 from app.graph import graph
 from app.knowledge.runbook_store import seed_if_empty
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
+)
+logging.getLogger("incident_suite.agents").setLevel(logging.INFO)
 
 
 async def main(path: str) -> None:

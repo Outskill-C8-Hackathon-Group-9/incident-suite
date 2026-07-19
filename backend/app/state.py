@@ -19,6 +19,11 @@ class IncidentState(TypedDict, total=False):
     clusters: list[dict[str, Any]]
     issues: list[dict[str, Any]]
 
+    # rag node (retrieved once, reused by remediation + cookbook + decision)
+    retrieved_runbooks: dict[str, list[str]]  # issue_id -> [titles]
+    runbook_titles: list[str]
+    retrieved_runbook_contents: dict[str, str]  # title -> content
+
     # later nodes
     remediations: list[dict[str, Any]]
     cookbook: dict[str, Any]

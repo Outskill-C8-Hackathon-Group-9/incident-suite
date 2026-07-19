@@ -1,7 +1,8 @@
 from app.state import IncidentState
 from app.models import ClassifierOutput
 from app.parsing import parse_logs, cluster_errors
-from app.llm import get_llm
+from app.llm import get_llm, invoke_llm
+from app.agent_logging import log_agent_io
 from app.nodes._trace import trace_event
 
 CLASSIFY_PROMPT = """You are a senior SRE triaging a production incident from log clusters.
@@ -26,16 +27,32 @@ CLUSTERS:
 
 
 def classifier_node(state: IncidentState) -> dict:
+    log_agent_io(
+        "classifier",
+        "request",
+        {
+            "filename": state.get("filename"),
+            "raw_logs_chars": len(state.get("raw_logs") or ""),
+            "raw_logs_preview": (state.get("raw_logs") or "")[:500],
+        },
+    )
+
     entries = parse_logs(state["raw_logs"])
     clusters = cluster_errors(entries)
 
     if not clusters:
-        return {
+        response = {
             "entries": [e.model_dump() for e in entries],
             "clusters": [],
             "issues": [],
             "trace": [trace_event("classifier", "No error/warning clusters found.")],
         }
+        log_agent_io("classifier", "response", {
+            "entries_count": len(entries),
+            "clusters": [],
+            "issues": [],
+        })
+        return response
 
     clusters_text = "\n\n".join(
         f"[{c.count}x] level={c.level} service={c.example_service} sig={c.signature}\n"
@@ -43,11 +60,12 @@ def classifier_node(state: IncidentState) -> dict:
         for c in clusters
     )
 
+    prompt = CLASSIFY_PROMPT.format(clusters=clusters_text)
     llm = get_llm().with_structured_output(ClassifierOutput, method="function_calling")
-    result: ClassifierOutput = llm.invoke(CLASSIFY_PROMPT.format(clusters=clusters_text))
+    result: ClassifierOutput = invoke_llm("classifier.llm", llm, prompt)
     issues = [i.model_dump() for i in result.issues]
 
-    return {
+    response = {
         "entries": [e.model_dump() for e in entries],
         "clusters": [c.model_dump() for c in clusters],
         "issues": issues,
@@ -58,3 +76,9 @@ def classifier_node(state: IncidentState) -> dict:
             {"issues": issues},
         )],
     }
+    log_agent_io("classifier", "response", {
+        "entries_count": len(entries),
+        "clusters": [c.model_dump() for c in clusters],
+        "issues": issues,
+    })
+    return response

@@ -1,5 +1,6 @@
 from app.state import IncidentState
 from app.integrations.slack_client import MockSlackClient
+from app.agent_logging import log_agent_io
 from app.nodes._trace import trace_event
 
 
@@ -26,9 +27,15 @@ def _format_message(state: IncidentState) -> str:
 def notifier_node(state: IncidentState) -> dict:
     client = MockSlackClient()
     text = _format_message(state)
+    post_request = {"text": text, "channel": None}
+    log_agent_io("notifier", "request", post_request)
+    log_agent_io("notifier.post_message", "request", post_request)
+
     result = client.post_message(text=text)
     result_data = result.model_dump()
-    return {
+    log_agent_io("notifier.post_message", "response", result_data)
+
+    response = {
         "slack_result": result_data,
         "trace": [trace_event(
             "notifier",
@@ -36,3 +43,5 @@ def notifier_node(state: IncidentState) -> dict:
             {"slack": result_data},
         )],
     }
+    log_agent_io("notifier", "response", result_data)
+    return response

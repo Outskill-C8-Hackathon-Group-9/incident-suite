@@ -63,6 +63,8 @@ export interface AnalysisResult {
   issues?: Issue[];
   remediations?: Remediation[];
   cookbook?: Cookbook;
+  retrieved_runbooks?: Record<string, string[]>;
+  runbook_titles?: string[];
   jira_tickets?: JiraTicket[];
   slack_result?: SlackResult;
 }
@@ -91,7 +93,7 @@ export interface AnalyzeCallbacks {
 // ─── Agent / UI types ─────────────────────────────────────────────────────────
 
 /** Agent node identifier — matches the keys in `active` / `done` maps */
-export type AgentId = "classifier" | "remediation" | "cookbook" | "notifier" | "jira";
+export type AgentId = "classifier" | "rag" | "remediation" | "cookbook" | "notifier" | "jira";
 
 /** A single entry in the Agent Swarm list */
 export interface AgentMeta {

@@ -18,6 +18,7 @@ interface LeftPanelProps {
 
 const AGENTS: AgentMeta[] = [
   { id: "classifier",  label: "Log Classifier",  icon: "🔍" },
+  { id: "rag",         label: "Runbook RAG",     icon: "📚" },
   { id: "remediation", label: "Remediator",       icon: "🛡️" },
   { id: "cookbook",    label: "Cookbook Builder", icon: "📋" },
   { id: "notifier",    label: "Slack Notifier",   icon: "💬" },
