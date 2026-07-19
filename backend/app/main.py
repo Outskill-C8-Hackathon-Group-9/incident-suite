@@ -12,6 +12,7 @@ from sse_starlette.sse import EventSourceResponse
 
 from app.graph import graph
 from app.knowledge.runbook_store import seed_if_empty
+from app.nodes._trace import trace_event
 
 # Directory where the built React app lives (set via STATIC_DIR env var).
 # In production (Render) this is ./static (populated by build.sh).
@@ -93,6 +94,14 @@ async def analyze(
                     continue
                 _merge_update(final, update)
                 payload = {"node": node_name, "update": _jsonable(update)}
+                yield {"event": "node", "data": json.dumps(payload)}
+
+                log_event = trace_event(
+                    node_name,
+                    f"Received response from {node_name}.",
+                    {"update_keys": list(update.keys())},
+                )
+                payload = {"node": node_name, "update": _jsonable({"trace": [log_event]})}
                 yield {"event": "node", "data": json.dumps(payload)}
         yield {"event": "done", "data": json.dumps(_jsonable(final))}
 

@@ -19,6 +19,7 @@ export interface Issue {
   severity: Severity;
   affected_service: string;
   summary: string;
+  rag_hits?: "cookbook" | "db" | null;
 }
 
 /** A RAG-grounded remediation for a specific issue */
@@ -36,6 +37,9 @@ export interface CookbookItem {
   action: string;
   owner_hint?: string;
   done_when?: string;
+  title?: string | null;
+  severity?: Severity | null;
+  rag_hits?: "cookbook" | "db" | null;
 }
 
 /** The incident cookbook returned by the cookbook-builder agent */

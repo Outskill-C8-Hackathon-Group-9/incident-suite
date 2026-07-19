@@ -1,4 +1,5 @@
 from __future__ import annotations
+from enum import Enum
 from typing import Literal, Optional
 from pydantic import BaseModel, Field
 
@@ -29,6 +30,11 @@ class ErrorCluster(BaseModel):
 
 
 # ---- classifier output (LLM structured output) ----
+class RAGHit(str, Enum):
+    cookbook = "cookbook"
+    db = "db"
+
+
 class DetectedIssue(BaseModel):
     id: str = Field(description="short slug id, e.g. 'oom-order-service'")
     title: str
@@ -37,6 +43,10 @@ class DetectedIssue(BaseModel):
     affected_service: str
     summary: str = Field(description="1-2 sentence plain-English explanation")
     evidence: list[str] = Field(description="log lines that justify this issue")
+    rag_hits: RAGHit | None = Field(
+        default=None,
+        description="Indicates whether the issue was grounded by a cookbook or DB retrieval.",
+    )
 
 
 class ClassifierOutput(BaseModel):
@@ -67,6 +77,12 @@ class ChecklistItem(BaseModel):
     action: str
     owner_hint: str = Field(description="which role/team, e.g. 'on-call SRE'")
     done_when: str = Field(description="how to know the step succeeded")
+    title: str | None = Field(default=None, description="The title of the issue this step relates to.")
+    severity: Severity | None = Field(default=None, description="The severity of the issue this step relates to.")
+    rag_hits: RAGHit | None = Field(
+        default=None,
+        description="Indicates whether this issue was grounded by the cookbook or DB.",
+    )
 
 
 class Cookbook(BaseModel):
