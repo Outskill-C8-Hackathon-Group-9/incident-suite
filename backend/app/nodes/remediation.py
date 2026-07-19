@@ -46,6 +46,7 @@ def remediation_node(state: IncidentState) -> dict:
             seen[title] = d.page_content
             titles.append(title)
         grounding_by_issue[i["id"]] = titles
+        i["rag_hits"] = "db" if titles else None
 
     runbooks_text = "\n\n".join(f"[{title}]\n{content}" for title, content in seen.items()) \
         or "No matching runbooks found."
