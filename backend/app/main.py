@@ -4,7 +4,7 @@ import uuid
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -69,11 +69,19 @@ def _merge_update(final: dict, update: dict) -> None:
 
 
 @app.post("/api/analyze")
-async def analyze(file: UploadFile = File(...)):
+async def analyze(
+    file: UploadFile = File(...),
+    openrouter_api_key: str = Form(""),
+):
     raw = (await file.read()).decode("utf-8", errors="replace")
     thread_id = str(uuid.uuid4())
     run_config = {"configurable": {"thread_id": thread_id}}
-    initial = {"raw_logs": raw, "filename": file.filename, "trace": []}
+    initial = {
+        "raw_logs": raw,
+        "filename": file.filename,
+        "trace": [],
+        "openrouter_api_key": openrouter_api_key or None,
+    }
 
     async def event_stream():
         # Accumulate from streamed updates so the done event does not depend on

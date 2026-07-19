@@ -43,7 +43,7 @@ def classifier_node(state: IncidentState) -> dict:
         for c in clusters
     )
 
-    llm = get_llm().with_structured_output(ClassifierOutput, method="function_calling")
+    llm = get_llm(api_key=state.get("openrouter_api_key")).with_structured_output(ClassifierOutput, method="function_calling")
     result: ClassifierOutput = llm.invoke(CLASSIFY_PROMPT.format(clusters=clusters_text))
     issues = [i.model_dump() for i in result.issues]
 

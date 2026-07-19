@@ -14,6 +14,7 @@ const NODES = ["classifier", "remediation", "cookbook", "jira", "notifier"] as c
 export default function App() {
   // ─── Original state (unchanged logic) ────────────────────────────────────
   const [file, setFile]       = useState<File | null>(null);
+  const [apiKey, setApiKey]   = useState<string>("");
   const [active, setActive]   = useState<NodeStateMap>({});
   const [trace, setTrace]     = useState<TraceEntry[]>([]);
   const [result, setResult]   = useState<AnalysisResult | null>(null);
@@ -22,7 +23,7 @@ export default function App() {
 
   // ─── Original run logic (unchanged) ──────────────────────────────────────
   const run = async (): Promise<void> => {
-    if (!file) return;
+    if (!file || !apiKey.trim()) return;
     setRunning(true);
     setActive({});
     setTrace([]);
@@ -41,7 +42,7 @@ export default function App() {
         setError(err.message);
         setRunning(false);
       },
-    });
+    }, apiKey.trim());
   };
 
   // ─── Derive "done" map once results arrive ────────────────────────────────
@@ -63,6 +64,8 @@ export default function App() {
       <LeftPanel
         file={file}
         setFile={setFile}
+        apiKey={apiKey}
+        setApiKey={setApiKey}
         running={running}
         onRun={() => { void run(); }}
         active={active}

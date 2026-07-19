@@ -19,4 +19,3 @@ class Config:
 
 
 config = Config()
-assert config.OPENROUTER_API_KEY, "OPENROUTER_API_KEY must be set in .env"
