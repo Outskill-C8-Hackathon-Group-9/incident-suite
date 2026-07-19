@@ -20,9 +20,9 @@ async def main(path: str) -> None:
 
     final = graph.get_state(cfg).values
     print("\n--- SLACK PREVIEW ---")
-    slack = final.get("slack_result")
-    if slack:
-        print(slack.get("text_preview") if isinstance(slack, dict) else slack.text_preview)
+    notification = final.get("notification")
+    if notification:
+        print(notification.get("text_preview") if isinstance(notification, dict) else notification.text_preview)
 
 
 if __name__ == "__main__":

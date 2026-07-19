@@ -9,7 +9,17 @@ import Results        from "./components/Results.tsx";
 import RightPanel     from "./components/RightPanel.tsx";
 
 // ─── Original logical constants (unchanged) ──────────────────────────────────
-const NODES = ["classifier", "remediation", "cookbook", "jira", "notifier"] as const;
+const NODES = [
+  "classifier",
+  "remediation",
+  "cookbook",
+  "decide_response",
+  "create_ticket",
+  "execute_cookbook",
+  "verify_outcome",
+  "close_ticket",
+  "notify_slack",
+] as const;
 
 export default function App() {
   // ─── Original state (unchanged logic) ────────────────────────────────────

@@ -1,4 +1,4 @@
-import type { AnalysisResult, JiraTicket, SlackResult } from "../types";
+import type { AnalysisResult, NotificationResult, TicketEntry } from "../types";
 
 // ─── Orchestrator Panel ───────────────────────────────────────────────────────
 
@@ -8,7 +8,7 @@ interface OrchestratorPanelProps {
 }
 
 function OrchestratorPanel({ state, running }: OrchestratorPanelProps) {
-  const tickets: JiraTicket[] = state?.jira_tickets ?? [];
+  const tickets: TicketEntry[] = state?.tickets ?? [];
   const firstTicket = tickets[0];
 
   // Automation progress based on what's filled in
@@ -17,14 +17,12 @@ function OrchestratorPanel({ state, running }: OrchestratorPanelProps) {
     state?.remediations,
     state?.cookbook,
     tickets.length > 0 || undefined,
-    state?.slack_result,
+    state?.notification,
   ];
   const completed = steps.filter(Boolean).length;
   const pct = Math.round((completed / steps.length) * 100);
 
-  const incidentId = firstTicket?.key
-    ? `#${firstTicket.key.split("-")[0]}-${firstTicket.key.split("-")[1] ?? "883"}`
-    : "#INC-2024";
+  const incidentId = firstTicket?.ticket.key ? `#${firstTicket.ticket.key}` : "#INC-2024";
 
   return (
     <div className="orchestrator-card">
@@ -57,11 +55,11 @@ function OrchestratorPanel({ state, running }: OrchestratorPanelProps) {
         </div>
       )}
 
-      {/* JIRA tickets */}
-      {tickets.map((t: JiraTicket) => (
+      {/* ITSM tickets — one per detected issue */}
+      {tickets.map((entry) => (
         <a
-          key={t.key}
-          href={t.url ?? "#"}
+          key={entry.ticket.key}
+          href={entry.ticket.url ?? "#"}
           target="_blank"
           rel="noreferrer"
           className="jira-link-row"
@@ -72,7 +70,10 @@ function OrchestratorPanel({ state, running }: OrchestratorPanelProps) {
               <path d="M12 4L4 12L12 20M12 4L20 12L12 20M12 4V20" stroke="#fff" strokeWidth="2" strokeLinejoin="round" />
             </svg>
           </div>
-          <span className="jira-text">{t.key} created</span>
+          <span className="jira-text">
+            {entry.ticket.key} · {entry.decision.path === "remediative" ? "🤖" : "🙋"}
+            {entry.assigned_engineer ? ` · ${entry.assigned_engineer.name}` : ""}
+          </span>
           <span className="jira-ext-icon">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
@@ -95,7 +96,7 @@ function OrchestratorPanel({ state, running }: OrchestratorPanelProps) {
 // ─── Slack Panel ──────────────────────────────────────────────────────────────
 
 interface SlackPanelProps {
-  slackResult: SlackResult | undefined;
+  slackResult: NotificationResult | undefined;
 }
 
 function SlackPanel({ slackResult }: SlackPanelProps) {
@@ -184,7 +185,7 @@ export default function RightPanel({ state, running }: RightPanelProps) {
   return (
     <aside className="right-panel">
       <OrchestratorPanel state={state} running={running} />
-      <SlackPanel slackResult={state?.slack_result} />
+      <SlackPanel slackResult={state?.notification} />
       <ReliabilityCard state={state} />
     </aside>
   );
