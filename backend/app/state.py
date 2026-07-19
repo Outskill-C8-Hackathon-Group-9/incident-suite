@@ -13,6 +13,7 @@ class IncidentState(TypedDict, total=False):
     # inputs
     raw_logs: str
     filename: str
+    openrouter_api_key: str  # passed per-request from the frontend
 
     # classifier node
     entries: list[dict[str, Any]]

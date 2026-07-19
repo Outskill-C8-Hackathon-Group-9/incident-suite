@@ -56,7 +56,7 @@ def remediation_node(state: IncidentState) -> dict:
         for i in issues
     )
 
-    llm = get_llm(temperature=0.2).with_structured_output(RemediationOutput, method="function_calling")
+    llm = get_llm(temperature=0.2, api_key=state.get("openrouter_api_key")).with_structured_output(RemediationOutput, method="function_calling")
     result: RemediationOutput = llm.invoke(
         REMEDIATION_PROMPT.format(issues=issues_text, runbooks=runbooks_text)
     )

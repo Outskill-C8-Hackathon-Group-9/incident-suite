@@ -10,6 +10,8 @@ interface AgentRowProps {
 interface LeftPanelProps {
   file: File | null;
   setFile: (file: File) => void;
+  apiKey: string;
+  setApiKey: (key: string) => void;
   running: boolean;
   onRun: () => void;
   active: NodeStateMap;
@@ -54,6 +56,8 @@ function AgentRow({ agent, active, done }: AgentRowProps) {
 export default function LeftPanel({
   file,
   setFile,
+  apiKey,
+  setApiKey,
   running,
   onRun,
   active,
@@ -61,6 +65,9 @@ export default function LeftPanel({
 }: LeftPanelProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState<boolean>(false);
+  const [keyVisible, setKeyVisible] = useState<boolean>(false);
+
+  const keyValid = apiKey.trim().length >= 10;
 
   const handleFile = (f: File | null | undefined): void => {
     if (!f) return;
@@ -73,6 +80,56 @@ export default function LeftPanel({
 
   return (
     <aside className="left-panel">
+      {/* API KEY INPUT */}
+      <section>
+        <p className="panel-section-title">OpenRouter API Key</p>
+        <div className={`api-key-field ${keyValid ? "is-valid" : apiKey.length > 0 ? "is-invalid" : ""}`}>
+          <svg className="api-key-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+          <input
+            id="openrouter-api-key"
+            className="api-key-input"
+            type={keyVisible ? "text" : "password"}
+            placeholder="sk-or-v1-…"
+            value={apiKey}
+            disabled={running}
+            onChange={(e) => setApiKey(e.target.value)}
+            autoComplete="off"
+            spellCheck={false}
+          />
+          <button
+            type="button"
+            className="api-key-toggle"
+            onClick={() => setKeyVisible((v) => !v)}
+            title={keyVisible ? "Hide key" : "Show key"}
+            aria-label={keyVisible ? "Hide API key" : "Show API key"}
+          >
+            {keyVisible ? (
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                <line x1="1" y1="1" x2="23" y2="23" />
+              </svg>
+            ) : (
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            )}
+          </button>
+        </div>
+        {apiKey.length > 0 && !keyValid && (
+          <p className="api-key-hint api-key-hint--error">Key looks too short — please check it</p>
+        )}
+        {keyValid && (
+          <p className="api-key-hint api-key-hint--ok">✓ Key accepted</p>
+        )}
+      </section>
+
+      <div className="agents-divider" />
+
       {/* INPUT LOGS */}
       <section>
         <p className="panel-section-title">Input Logs</p>
@@ -123,7 +180,7 @@ export default function LeftPanel({
           id="run-analysis-btn"
           className="btn-primary"
           onClick={onRun}
-          disabled={!file || running}
+          disabled={!file || !keyValid || running}
         >
           {running ? (
             <>

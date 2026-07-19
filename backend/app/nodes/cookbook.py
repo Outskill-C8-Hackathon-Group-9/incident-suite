@@ -23,7 +23,7 @@ def cookbook_node(state: IncidentState) -> dict:
     if not issues:
         return {"trace": [trace_event("cookbook", "No issues; skipped checklist.")]}
 
-    llm = get_llm(temperature=0.3).with_structured_output(Cookbook, method="function_calling")
+    llm = get_llm(temperature=0.3, api_key=state.get("openrouter_api_key")).with_structured_output(Cookbook, method="function_calling")
     cookbook: Cookbook = llm.invoke(COOKBOOK_PROMPT.format(
         issues="\n".join(f"- {i['title']} ({i['severity']})" for i in issues),
         remediations="\n".join(f"- {r['issue_id']}: {r['fix_summary']}" for r in rems),

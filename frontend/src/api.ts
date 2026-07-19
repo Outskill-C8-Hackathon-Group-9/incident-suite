@@ -26,11 +26,13 @@ function parseSseFrames(buffer: string): { events: SseFrame[]; rest: string } {
 export async function analyze(
   file: File,
   { onNode, onDone, onError }: AnalyzeCallbacks,
+  apiKey: string,
 ): Promise<void> {
   let sawDone = false;
   try {
     const form = new FormData();
     form.append("file", file);
+    form.append("openrouter_api_key", apiKey);
 
     const res = await fetch(`${BASE}/api/analyze`, { method: "POST", body: form });
     if (!res.ok || !res.body) throw new Error(`Request failed: ${res.status}`);
