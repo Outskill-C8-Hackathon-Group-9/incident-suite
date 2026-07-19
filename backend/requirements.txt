@@ -11,13 +11,25 @@ langchain-openai>=0.2.0            # OpenRouter (OpenAI-compatible endpoint)
 langchain-chroma>=0.1.4           # Chroma vector store (pulls in chromadb)
 langchain-huggingface>=0.1.0      # HuggingFaceEmbeddings wrapper
 sentence-transformers>=3.0.0      # local embedding model (all-MiniLM-L6-v2)
+rank_bm25>=0.2.2                  # BM25 lexical retrieval for hybrid search
 
 # ---- web layer ----
 fastapi>=0.115.0
 uvicorn[standard]>=0.30.0
 sse-starlette>=2.1.0              # Server-Sent Events for FastAPI
 python-multipart>=0.0.9          # file uploads
+httpx>=0.27.0                    # async HTTP client for webhook callbacks
 
 # ---- config / models ----
 python-dotenv>=1.0.0
 pydantic>=2.0.0
+
+# ---- HuggingFace datasets + Hub ----
+datasets>=2.14.0                  # load HF datasets for incident knowledge
+huggingface-hub>=0.20.0           # search HF Hub for relevant datasets
+
+# ---- LangSmith evals ----
+langsmith>=0.1.0                  # LangSmith eval tracking (optional)
+
+# ---- MCP server ----
+mcp>=1.0.0                       # Model Context Protocol SDK (optional)

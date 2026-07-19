@@ -12,5 +12,9 @@ class MockSlackClient:
         ch = channel or config.SLACK_CHANNEL
         ts = f"{time.time():.6f}"
         permalink = f"https://your-workspace.slack.com/archives/CHANNEL/p{uuid.uuid4().hex[:12]}"
-        print(f"[MOCK SLACK] -> {ch}\n{text}\n")
+        msg = f"[MOCK SLACK] -> {ch}\n{text}\n"
+        try:
+            print(msg)
+        except UnicodeEncodeError:
+            print(msg.encode("ascii", errors="replace").decode("ascii"))
         return SlackResult(channel=ch, ts=ts, permalink=permalink, text_preview=text)

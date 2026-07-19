@@ -10,6 +10,7 @@ RUNBOOKS: list[dict] = [
         "title": "OOM / memory leak in a JVM service",
         "category": "memory_leak",
         "service_hint": "order-service",
+        "domain": "devops",
         "content": (
             "Symptoms: steadily rising heap usage, long GC pauses, java.lang.OutOfMemoryError, "
             "container OOMKilled and restart loops. Downstream services see connection refused as "

@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "incident-analysis-suite": {
+      "command": "python",
+      "args": ["-m", "app.mcp_server"],
+      "cwd": "./backend",
+      "env": {
+        "OPENROUTER_API_KEY": "${OPENROUTER_API_KEY}"
+      }
+    }
+  }
+}

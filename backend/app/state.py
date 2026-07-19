@@ -14,16 +14,26 @@ class IncidentState(TypedDict, total=False):
     raw_logs: str
     filename: str
 
+    # image input (optional)
+    image_data: str             # base64-encoded image
+    image_description: str      # text description of the image
+
     # classifier node
     entries: list[dict[str, Any]]
     clusters: list[dict[str, Any]]
     issues: list[dict[str, Any]]
+
+    # image analysis node
+    image_analysis: dict[str, Any] | None
 
     # later nodes
     remediations: list[dict[str, Any]]
     cookbook: dict[str, Any]
     jira_tickets: list[dict[str, Any]]
     slack_result: dict[str, Any]
+
+    # fallback node
+    fallback_results: dict[str, Any] | None
 
     # audit trail (reducer = list concat so nodes append, not overwrite)
     trace: Annotated[list[dict], operator.add]

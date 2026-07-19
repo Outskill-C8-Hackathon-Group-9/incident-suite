@@ -1,7 +1,8 @@
 from app.state import IncidentState
 from app.models import RemediationOutput
 from app.llm import get_llm
-from app.knowledge.runbook_store import retrieve
+from app.knowledge.query_builder import build_issue_query, build_filters_for_issue
+from app.knowledge.confidence import retrieve_with_confidence
 from app.config import config
 from app.nodes._trace import trace_event
 
@@ -34,18 +35,39 @@ def remediation_node(state: IncidentState) -> dict:
     if not issues:
         return {"remediations": [], "trace": [trace_event("remediation", "No issues to remediate.")]}
 
-    # ---- RAG retrieval: pull matching runbooks per issue ----
-    seen: dict[str, str] = {}          # title -> content (dedupe across issues)
+    # ---- Hybrid RAG + confidence gate (low score -> rewrite query -> re-retrieve) ----
+    seen: dict[str, str] = {}
     grounding_by_issue: dict[str, list[str]] = {}
+    retrieval_meta: dict[str, dict] = {}
+    rewrites = 0
+
     for i in issues:
-        query = f"{i['title']} {i['category']} {i['affected_service']} {i['summary']}"
-        docs = retrieve(query, k=config.RAG_TOP_K)
+        query = build_issue_query(i, sibling_issues=issues)
+        filters = build_filters_for_issue(i)
+        docs, conf_meta = retrieve_with_confidence(
+            query,
+            issue=i,
+            k=config.RAG_TOP_K,
+            filters=filters or None,
+        )
+        if conf_meta.get("rewritten"):
+            rewrites += 1
+
         titles = []
         for d in docs:
-            title = d.metadata.get("title", "runbook")
-            seen[title] = d.page_content
-            titles.append(title)
+            title = d.metadata.get("original_title") or d.metadata.get("title", "runbook")
+            source = d.metadata.get("source", "seed")
+            label = f"{title}" if source == "seed" else f"{title} [{source}]"
+            seen[label] = d.page_content
+            titles.append(label)
         grounding_by_issue[i["id"]] = titles
+        retrieval_meta[i["id"]] = {
+            "filters": filters,
+            "hybrid": config.RAG_USE_HYBRID,
+            "rerank": config.RAG_USE_RERANK,
+            "docs": titles,
+            **conf_meta,
+        }
 
     runbooks_text = "\n\n".join(f"[{title}]\n{content}" for title, content in seen.items()) \
         or "No matching runbooks found."
@@ -61,7 +83,6 @@ def remediation_node(state: IncidentState) -> dict:
         REMEDIATION_PROMPT.format(issues=issues_text, runbooks=runbooks_text)
     )
 
-    # safety net on top of the prompt-level ban
     safe = [
         r.model_dump()
         for r in result.remediations
@@ -73,10 +94,13 @@ def remediation_node(state: IncidentState) -> dict:
         "trace": [trace_event(
             "remediation",
             f"Proposed {len(safe)} remediation(s), grounded in "
-            f"{len(seen)} retrieved runbook(s).",
+            f"{len(seen)} retrieved chunk(s) "
+            f"(hybrid={config.RAG_USE_HYBRID}, rerank={config.RAG_USE_RERANK}, "
+            f"query_rewrites={rewrites}).",
             {
                 "remediations": safe,
                 "retrieved_runbooks": grounding_by_issue,
+                "retrieval": retrieval_meta,
             },
         )],
     }
