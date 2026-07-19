@@ -1,0 +1,8 @@
+{
+  "summary": "Incident dispatcher routing issue in the triage router",
+  "severity": "medium",
+  "cookbook_matches": [
+    "incident_dispatcher"
+  ],
+  "rag_matches": []
+}

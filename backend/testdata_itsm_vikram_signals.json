@@ -1,0 +1,8 @@
+{
+  "summary": "Database connection pool exhausted in checkout service",
+  "severity": "high",
+  "cookbook_matches": [
+    "database"
+  ],
+  "rag_matches": []
+}

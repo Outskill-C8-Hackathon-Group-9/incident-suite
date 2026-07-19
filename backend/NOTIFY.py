@@ -2,7 +2,7 @@
 # ASCII Data Flow Diagram
 # =====================================================================
 #
-#  High-level flow of notify.py: load ITSM.py output, build Slack messages,
+#  High-level flow of NOTIFY.py: load JIRA.py output, build Slack messages,
 #  post to team channel + optionally DM the assigned engineer, then emit
 #  JSON result to stdout.
 #
@@ -72,15 +72,15 @@ from pathlib import Path
 from app.integrations.slack_client import SlackNotifier
 
 
-# Build the CLI argument parser for notify.py.
-# Expects one positional argument: the path to the JSON payload file produced by ITSM.py.
+# Build the CLI argument parser for NOTIFY.py.
+# Expects one positional argument: the path to the JSON payload file produced by JIRA.py.
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Send Slack notifications for an ITSM ticket payload.")
-    parser.add_argument("input", help="Path to a JSON file matching ITSM.py output.")
+    parser.add_argument("input", help="Path to a JSON file matching JIRA.py output.")
     return parser
 
 
-# Load the ITSM.py output JSON from disk and parse it into a Python dict.
+# Load the JIRA.py output JSON from disk and parse it into a Python dict.
 # Uses pathlib to handle cross-platform path handling.
 def _load_payload(path: str) -> dict:
     return json.loads(Path(path).read_text(encoding="utf-8"))

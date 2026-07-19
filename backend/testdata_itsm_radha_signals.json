@@ -1,0 +1,8 @@
+{
+  "summary": "Network connectivity failures between gateway and inventory service",
+  "severity": "high",
+  "cookbook_matches": [
+    "network"
+  ],
+  "rag_matches": []
+}

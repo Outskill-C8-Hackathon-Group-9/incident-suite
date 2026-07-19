@@ -3,7 +3,7 @@ from __future__ import annotations
 import base64
 import itertools
 import json
-from urllib import error, request
+from urllib import error, parse, request
 
 from app.config import config
 from app.models import Engineer, JiraTicket
@@ -25,6 +25,7 @@ class JiraTicketManager:
 
     def __init__(self) -> None:
         self.last_create_was_real = False
+        self.last_assign_was_real = False
 
     def create_ticket(self, *, summary: str, description: str, severity: str) -> JiraTicket:
         if config.use_real_jira:
@@ -38,16 +39,32 @@ class JiraTicketManager:
         return self._create_ticket_mock(summary=summary, description=description, severity=severity)
 
     def assign_ticket(self, ticket: JiraTicket, engineer: Engineer) -> JiraTicket:
-        if config.use_real_jira and engineer.jira_account_id:
+        # Real-Jira path: PUT the assignee, then refetch the issue so the
+        # returned ticket carries the assignee displayName that Jira itself
+        # confirmed (rather than the local Engineer.name we passed in).
+        if config.use_real_jira:
             try:
+                account_id = self._resolve_assignable_account_id(engineer)
+                if not account_id:
+                    raise RuntimeError(
+                        f"Could not resolve an assignable Jira account for engineer '{engineer.name}'."
+                    )
                 self._request(
                     method="PUT",
                     path=f"/rest/api/3/issue/{ticket.key}/assignee",
-                    payload={"accountId": engineer.jira_account_id},
+                    payload={"accountId": account_id},
                 )
-                return ticket.model_copy(update={"assignee": engineer.name, "status": "Assigned"})
+                confirmed = self._fetch_ticket(ticket.key)
+                if confirmed is not None:
+                    self.last_assign_was_real = True
+                    return confirmed.model_copy(update={"status": "Assigned"})
+                self.last_assign_was_real = True
+                return ticket.model_copy(
+                    update={"assignee": engineer.name, "status": "Assigned"}
+                )
             except Exception as exc:
                 print(f"[JIRA] real assign failed, falling back to mock: {exc}")
+        self.last_assign_was_real = False
         print(f"[MOCK JIRA] assigned {ticket.key} to {engineer.name}")
         return ticket.model_copy(update={"assignee": engineer.name, "status": "Assigned"})
 
@@ -93,14 +110,25 @@ class JiraTicketManager:
         except Exception as exc:
             print(f"[JIRA] round-robin history lookup skipped: {exc}")
             return engineers[0]
+        # Build a map of local jira_account_id -> engineer so we can match
+        # Jira's canonical accountId against what we have in ENGINEER_MAPPING.
+        by_account_id = {e.jira_account_id: e for e in engineers if e.jira_account_id}
         for issue in issues:
             assignee = issue.get("fields", {}).get("assignee") or {}
             account_id = assignee.get("accountId", "")
             if not account_id:
                 continue
-            for index, engineer in enumerate(engineers):
-                if engineer.jira_account_id == account_id:
-                    return engineers[(index + 1) % len(engineers)]
+            matched = by_account_id.get(account_id)
+            if matched is None:
+                # Jira knows about an assignee we don't have in the mapping.
+                # Surface it so the user can fix ENGINEER_MAPPING in .env.
+                print(
+                    f"[JIRA] round-robin: Jira assignee accountId={account_id} "
+                    f"is not in ENGINEER_MAPPING; using first engineer."
+                )
+                return engineers[0]
+            index = engineers.index(matched)
+            return engineers[(index + 1) % len(engineers)]
         return engineers[0]
 
     def update_ticket(self, ticket: JiraTicket, *, note: str) -> JiraTicket:
@@ -201,6 +229,73 @@ class JiraTicketManager:
             },
         )
         return data.get("issues", [])
+
+    def _fetch_ticket(self, key: str) -> JiraTicket | None:
+        """Fetch a single issue by key and project it to a JiraTicket.
+
+        Returns None if the request fails (so callers can fall back).
+        """
+        try:
+            data = self._request(
+                method="GET",
+                path=f"/rest/api/3/issue/{key}",
+            )
+        except Exception as exc:
+            print(f"[JIRA] fetch {key} failed: {exc}")
+            return None
+        if not data:
+            return None
+        return self._ticket_from_issue(data)
+
+    def _resolve_assignable_account_id(self, engineer: Engineer) -> str:
+        candidates: list[dict] = []
+        for query in self._assignee_queries(engineer):
+            users = self._search_assignable_users(query=query)
+            candidates.extend(users)
+
+        unique_by_account: dict[str, dict] = {}
+        for user in candidates:
+            account_id = user.get("accountId", "")
+            if account_id:
+                unique_by_account[account_id] = user
+
+        if engineer.jira_account_id and engineer.jira_account_id in unique_by_account:
+            return engineer.jira_account_id
+
+        for user in unique_by_account.values():
+            if user.get("displayName", "").strip().lower() == engineer.name.strip().lower():
+                return user["accountId"]
+
+        if len(unique_by_account) == 1:
+            return next(iter(unique_by_account))
+
+        return engineer.jira_account_id
+
+    def _assignee_queries(self, engineer: Engineer) -> list[str]:
+        queries: list[str] = []
+        if engineer.name:
+            queries.append(engineer.name)
+        if engineer.email:
+            queries.append(engineer.email)
+        if engineer.jira_account_id:
+            queries.append(engineer.jira_account_id)
+        return list(dict.fromkeys(query for query in queries if query))
+
+    def _search_assignable_users(self, *, query: str) -> list[dict]:
+        encoded_query = parse.urlencode(
+            {
+                "project": config.JIRA_PROJECT_KEY,
+                "query": query,
+                "maxResults": 50,
+            }
+        )
+        data = self._request(
+            method="GET",
+            path=f"/rest/api/3/user/assignable/search?{encoded_query}",
+        )
+        if isinstance(data, list):
+            return data
+        return []
 
     def _ticket_from_issue(self, issue: dict) -> JiraTicket:
         fields = issue.get("fields", {})

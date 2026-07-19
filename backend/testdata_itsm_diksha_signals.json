@@ -1,0 +1,8 @@
+{
+  "summary": "Memory leak with OOM restarts in recommendation service",
+  "severity": "critical",
+  "cookbook_matches": [
+    "memory_leak"
+  ],
+  "rag_matches": []
+}

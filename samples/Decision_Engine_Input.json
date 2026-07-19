@@ -1,0 +1,28 @@
+{
+  "node": "cookbook",
+  "update": {
+    "cookbook": {
+      "title": "string",
+      "items": [
+        {
+          "step": 1,
+          "action": "string",
+          "owner_hint": "string",
+          "done_when": "string",
+          "title": "string1",
+          "severity": "string",
+          "rag_hits": "CPU | cookbook | null"
+        },
+            {
+          "step": 1,
+          "action": "string",
+          "owner_hint": "string",
+          "done_when": "string",
+          "title": "string2",
+          "severity": "string",
+          "rag_hits": "db | cookbook | null"
+        }
+      ]
+    }
+  }
+}

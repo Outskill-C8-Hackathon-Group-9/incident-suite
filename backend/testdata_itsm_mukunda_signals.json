@@ -1,0 +1,8 @@
+{
+  "summary": "Deployment regression after the latest checkout release",
+  "severity": "high",
+  "cookbook_matches": [
+    "deployment_regression"
+  ],
+  "rag_matches": []
+}

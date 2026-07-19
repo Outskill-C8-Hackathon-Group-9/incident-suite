@@ -1,0 +1,8 @@
+{
+  "summary": "CPU saturation causing queue buildup in payment service",
+  "severity": "high",
+  "cookbook_matches": [
+    "cpu_saturation"
+  ],
+  "rag_matches": []
+}

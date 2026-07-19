@@ -112,6 +112,7 @@ class Config:
                     email=entry.get("email", ""),
                     slack_user_id=entry.get("slack_user_id", ""),
                     jira_account_id=entry.get("jira_account_id", ""),
+                    expertise=entry.get("expertise", ""),
                 )
                 for name, entry in parsed.items()
                 if isinstance(entry, dict)
@@ -134,6 +135,7 @@ class Config:
                     email=parts[1],
                     slack_user_id=parts[2],
                     jira_account_id=parts[3],
+                    expertise=parts[4] if len(parts) > 4 else "",
                 )
             )
         if engineers:
@@ -146,6 +148,15 @@ class Config:
     @property
     def verbose_demo(self) -> bool:
         return _as_bool(os.getenv("VERBOSE_DEMO", "true"), default=True)
+
+    def engineer_by_name(self, name: str) -> Engineer | None:
+        if not name:
+            return None
+        lowered = name.strip().lower()
+        for engineer in self.oncall_engineers:
+            if engineer.name.strip().lower() == lowered:
+                return engineer
+        return None
 
 
 config = Config()

@@ -1,0 +1,8 @@
+{
+  "summary": "Upstream timeout spike in api-gateway during peak traffic",
+  "severity": "high",
+  "cookbook_matches": [
+    "timeout"
+  ],
+  "rag_matches": []
+}

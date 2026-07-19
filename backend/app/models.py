@@ -74,6 +74,7 @@ class Engineer(ModelMixin):
     email: str
     slack_user_id: str = ""
     jira_account_id: str = ""
+    expertise: str = ""
 
 
 @dataclass
