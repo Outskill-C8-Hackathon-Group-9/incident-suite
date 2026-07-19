@@ -16,11 +16,10 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 5173,
       proxy: {
-        // Dev proxy: /api/* → FastAPI at :8000 (strips the /api prefix)
+        // Dev proxy: /api/* → FastAPI at :8000 (no rewrite — backend now serves /api/*)
         "/api": {
           target: "http://localhost:8000",
           changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api/, ""),
         },
         "/health": {
           target: "http://localhost:8000",
