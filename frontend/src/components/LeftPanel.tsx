@@ -19,11 +19,15 @@ interface LeftPanelProps {
 }
 
 const AGENTS: AgentMeta[] = [
-  { id: "classifier",  label: "Log Classifier",  icon: "🔍" },
-  { id: "remediation", label: "Remediator",       icon: "🛡️" },
-  { id: "cookbook",    label: "Cookbook Builder", icon: "📋" },
-  { id: "notifier",    label: "Slack Notifier",   icon: "💬" },
-  { id: "jira",        label: "Jira Integrator",  icon: "🎫" },
+  { id: "classifier",       label: "Log Classifier",     icon: "🔍" },
+  { id: "remediation",      label: "Remediator",         icon: "🛡️" },
+  { id: "cookbook",         label: "Cookbook Builder",   icon: "📋" },
+  { id: "decide_response",  label: "Decision Engine",    icon: "🧭" },
+  { id: "create_ticket",    label: "Ticket Manager",     icon: "🎫" },
+  { id: "execute_cookbook", label: "Cookbook Executor",  icon: "⚙️" },
+  { id: "verify_outcome",   label: "Outcome Verifier",   icon: "✅" },
+  { id: "close_ticket",     label: "Ticket Closer",      icon: "🔒" },
+  { id: "notify_slack",     label: "Slack Notifier",     icon: "💬" },
 ];
 
 type AgentState = "idle" | "active" | "done";

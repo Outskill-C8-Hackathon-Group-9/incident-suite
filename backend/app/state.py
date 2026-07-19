@@ -23,8 +23,15 @@ class IncidentState(TypedDict, total=False):
     # later nodes
     remediations: list[dict[str, Any]]
     cookbook: dict[str, Any]
-    jira_tickets: list[dict[str, Any]]
-    slack_result: dict[str, Any]
+
+    # decision engine: one Decision (+ title) per issue
+    decisions: list[dict[str, Any]]
+
+    # ITSM: one entry per issue — {issue_id, title, decision, ticket,
+    # assigned_engineer, duplicate_found, execution?, verification?}
+    tickets: list[dict[str, Any]]
+
+    notification: dict[str, Any]
 
     # audit trail (reducer = list concat so nodes append, not overwrite)
     trace: Annotated[list[dict], operator.add]

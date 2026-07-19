@@ -48,18 +48,68 @@ export interface Cookbook {
   items: CookbookItem[];
 }
 
-/** A JIRA ticket created by the jira-integrator agent */
+/** Path chosen by the decision engine */
+export type ResponsePath = "remediative" | "investigative";
+
+/** The decision-engine verdict: remediative (auto-fix) vs investigative (human) */
+export interface Decision {
+  path: ResponsePath;
+  severity: Severity | string;
+  confidence: number;
+  policy_reason: string;
+  matched_signals?: string[];
+  reference_sources?: string[];
+}
+
+/** An ITSM ticket created for one detected issue */
 export interface JiraTicket {
   key: string;
   url: string;
   summary: string;
   severity: string;
+  status: string;
+  assignee?: string;
 }
 
-/** The Slack notification result from the notifier agent */
-export interface SlackResult {
+/** An on-call engineer from the roster */
+export interface Engineer {
+  name: string;
+  email?: string;
+  slack_user_id?: string;
+  jira_account_id?: string;
+  expertise?: string;
+}
+
+/** Result of auto-executing the cookbook (remediative path only) */
+export interface ExecutionResult {
+  steps_run: string[];
+  summary: string;
+}
+
+/** Result of verifying the auto-fix (remediative path only) */
+export interface VerificationResult {
+  success: boolean;
+  details: string;
+}
+
+/** The Slack notification result from the notify_slack agent */
+export interface NotificationResult {
   channel: string;
+  team_permalink?: string;
+  dm_permalink?: string;
   text_preview: string;
+}
+
+/** One incident: the issue's decision, ticket, and (if remediative) fix outcome */
+export interface TicketEntry {
+  issue_id: string;
+  title: string;
+  decision: Decision;
+  ticket: JiraTicket;
+  assigned_engineer?: Engineer | null;
+  duplicate_found: boolean;
+  execution?: ExecutionResult;
+  verification?: VerificationResult;
 }
 
 /** The final state object emitted by the `done` SSE event */
@@ -67,8 +117,8 @@ export interface AnalysisResult {
   issues?: Issue[];
   remediations?: Remediation[];
   cookbook?: Cookbook;
-  jira_tickets?: JiraTicket[];
-  slack_result?: SlackResult;
+  tickets?: TicketEntry[];
+  notification?: NotificationResult;
 }
 
 // ─── SSE / API contract types ─────────────────────────────────────────────────
@@ -95,7 +145,16 @@ export interface AnalyzeCallbacks {
 // ─── Agent / UI types ─────────────────────────────────────────────────────────
 
 /** Agent node identifier — matches the keys in `active` / `done` maps */
-export type AgentId = "classifier" | "remediation" | "cookbook" | "notifier" | "jira";
+export type AgentId =
+  | "classifier"
+  | "remediation"
+  | "cookbook"
+  | "decide_response"
+  | "create_ticket"
+  | "execute_cookbook"
+  | "verify_outcome"
+  | "close_ticket"
+  | "notify_slack";
 
 /** A single entry in the Agent Swarm list */
 export interface AgentMeta {

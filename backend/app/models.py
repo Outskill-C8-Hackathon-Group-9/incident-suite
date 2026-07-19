@@ -90,17 +90,49 @@ class Cookbook(BaseModel):
     items: list[ChecklistItem]
 
 
-# ---- integration results ----
+# ---- decision engine ----
+ResponsePath = Literal["remediative", "investigative"]
+
+
+class Decision(BaseModel):
+    path: ResponsePath
+    severity: Severity
+    confidence: float
+    policy_reason: str
+    matched_signals: list[str] = Field(default_factory=list)
+    reference_sources: list[str] = Field(default_factory=list)
+
+
+# ---- ITSM / integration results ----
+class Engineer(BaseModel):
+    name: str
+    email: str = ""
+    slack_user_id: str = ""
+    jira_account_id: str = ""
+    expertise: str = ""
+
+
 class JiraTicket(BaseModel):
     key: str
     url: str
     summary: str
     severity: Severity
-    issue_id: str
+    status: str = "Open"
+    assignee: str = ""
 
 
-class SlackResult(BaseModel):
+class ExecutionResult(BaseModel):
+    steps_run: list[str]
+    summary: str
+
+
+class VerificationResult(BaseModel):
+    success: bool
+    details: str
+
+
+class NotificationResult(BaseModel):
     channel: str
-    ts: str
-    permalink: str
-    text_preview: str
+    team_permalink: str
+    dm_permalink: str = ""
+    text_preview: str = ""

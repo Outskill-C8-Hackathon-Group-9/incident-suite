@@ -74,6 +74,25 @@ def seed_if_empty() -> int:
 
 
 def retrieve(query: str, k: int | None = None) -> list[Document]:
-    """Return the top-k most similar runbooks for a query string."""
+    """Return the top-k most similar runbooks for a query string, excluding
+    weak matches (Chroma's plain similarity_search always returns k docs
+    regardless of relevance, which would make every issue a "hit" and the
+    investigative path unreachable). Lower distance = more similar."""
     store = get_store()
-    return store.similarity_search(query, k=k or config.RAG_TOP_K)
+    scored = store.similarity_search_with_score(query, k=k or config.RAG_TOP_K)
+    return [doc for doc, distance in scored if distance <= config.RAG_MAX_DISTANCE]
+
+
+def add_runbook(*, title: str, category: str, content: str) -> None:
+    """Ingest a resolved incident as a new runbook so future occurrences of the
+    same error are grounded (cookbook/RAG hit) instead of going investigative."""
+    if not content:
+        return
+    store = get_store()
+    store.add_documents([
+        Document(
+            page_content=content,
+            metadata={"title": title, "category": category or "unknown", "service_hint": ""},
+        )
+    ])
+    logger.info("Ingested resolved incident '%s' into the runbook store.", title)

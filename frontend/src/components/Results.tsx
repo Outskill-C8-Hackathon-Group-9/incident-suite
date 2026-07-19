@@ -1,5 +1,13 @@
 import { useState } from "react";
-import type { Issue, Remediation, Cookbook, CookbookItem, AnalysisResult, Severity } from "../types";
+import type {
+  Issue,
+  Remediation,
+  Cookbook,
+  CookbookItem,
+  AnalysisResult,
+  Severity,
+  TicketEntry,
+} from "../types";
 
 // ─── Sub-components ────────────────────────────────────────────────────────────
 
@@ -155,6 +163,48 @@ function CookbookSection({ cookbook }: CookbookSectionProps) {
   );
 }
 
+interface TicketsSectionProps {
+  tickets: TicketEntry[] | undefined;
+}
+
+function TicketsSection({ tickets }: TicketsSectionProps) {
+  if (!tickets?.length) return null;
+  return (
+    <section>
+      <h2 className="section-heading">
+        Incident Tickets
+        <span className="section-badge">{tickets.length}</span>
+      </h2>
+      <div className="results-stack" style={{ marginTop: "var(--space-4)" }}>
+        {tickets.map((entry) => {
+          const { decision, ticket, execution, verification, assigned_engineer } = entry;
+          const remediative = decision.path === "remediative";
+          return (
+            <div key={ticket.key} className="remediation-card">
+              <div className="remediation-id">
+                {remediative ? "🤖 Remediative" : "🙋 Investigative"} · {ticket.key}
+                {entry.duplicate_found ? " (duplicate — reused existing ticket)" : ""}
+              </div>
+              <div className="remediation-summary">{entry.title}</div>
+              <p className="remediation-rationale">{decision.policy_reason}</p>
+              <p className="remediation-rationale">
+                Status: {ticket.status}
+                {assigned_engineer ? ` · Assigned: ${assigned_engineer.name} (${assigned_engineer.expertise || "generalist"})` : ""}
+              </p>
+              {execution && <p className="remediation-rationale">{execution.summary}</p>}
+              {verification && (
+                <p className="remediation-rationale">
+                  {verification.success ? "✅" : "⏳"} {verification.details}
+                </p>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 // ─── Main export ──────────────────────────────────────────────────────────────
 
 interface ResultsProps {
@@ -168,6 +218,7 @@ export default function Results({ state }: ResultsProps) {
       <IssuesSection issues={state.issues} />
       <RemediationsSection remediations={state.remediations} />
       <CookbookSection cookbook={state.cookbook} />
+      <TicketsSection tickets={state.tickets} />
     </div>
   );
 }
