@@ -44,6 +44,7 @@ app.add_middleware(
 
 
 @app.get("/health")
+@app.get("/api/health")
 def health():
     return {"status": "ok"}
 
@@ -67,7 +68,7 @@ def _merge_update(final: dict, update: dict) -> None:
             final[key] = value
 
 
-@app.post("/analyze")
+@app.post("/api/analyze")
 async def analyze(file: UploadFile = File(...)):
     raw = (await file.read()).decode("utf-8", errors="replace")
     thread_id = str(uuid.uuid4())
